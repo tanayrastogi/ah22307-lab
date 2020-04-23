@@ -1,0 +1,1 @@
+web: sh setup.sh && streamlit run ah2307_lab1.py
