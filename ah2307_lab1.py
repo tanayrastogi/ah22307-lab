@@ -65,12 +65,12 @@ def mode_choice_model():
     if st.checkbox("(ii) Probabilites of each zone given mode"):
         orig_zone = st.radio("Select Origin Zone", list(ZONE.keys()))
         dest_zone = st.radio("Select Destination Zone", list(ZONE.keys()))
-        mode      = st.radio("Select Mode", list(MODE.keys()))
+        mode      = st.radio("Select Mode", list(MODE.keys()), key=1)
         probability = get_probability(ZONE[orig_zone], ZONE[dest_zone], MODE[mode])
         st.markdown("### The probability of {} from {} to {} is {}".format(mode, orig_zone, dest_zone, round(probability, 4)))
     
     if st.checkbox("(iii) Probability of travelling using choosen mode from zone 1 to any destination"):
-        mode      = st.radio("Select Mode", list(MODE.keys()))
+        mode      = st.radio("Select Mode", list(MODE.keys()), key=2)
         zone11    = zone12 = get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
         zone12    = get_probability(ZONE["Zone 1"], ZONE["Zone 2"], MODE[mode])
         st.markdown("### The probability of using {} from Zone 1 is {}".format(mode, round(zone11*0.5 + zone12*0.5, 4)))
