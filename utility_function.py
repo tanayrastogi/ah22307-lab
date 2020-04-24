@@ -46,7 +46,6 @@ def UtilityFunction(tt_car, c_car, tt_inv_pt, tt_wait_pt, c_pt, distance, N_empl
     ALPHA_SLOW = 0          # [constant]
     DISTANCE = -0.4         # [km]
 
-
     # Utility of car
     V_car = ALPHA_CAR + TRAVEL_TIME*tt_car + COST_CAR*c_car + THETA*np.log(N_employed)
     try:
