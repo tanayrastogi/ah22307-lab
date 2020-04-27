@@ -15,16 +15,57 @@ ZONE = {"Zone 1":0, "Zone 2":1}
 
 def utility_function():
     st.markdown("## 2.1 Utility Function")
-        
+    
     # Show Utility Matrix
     if st.checkbox("Show Utility Matrixes"):
         utilities = get_utility()
         st.markdown("Utility for **CAR**")
-        st.write(pd.DataFrame(utilities[0], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+        st.dataframe(pd.DataFrame(utilities[0], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
         st.markdown("Utility for **PUBLIC TRANSPORT (PT)**")
-        st.write(pd.DataFrame(utilities[1], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+        st.dataframe(pd.DataFrame(utilities[1], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
         st.markdown("Utility for **SLOW**")
-        st.write(pd.DataFrame(utilities[2], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+        st.dataframe(pd.DataFrame(utilities[2], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+
+
+
+    # Text
+    st.markdown("""
+    ## Utility Function
+    For the lab we assume that there are three alternate modes of transportation, *m*, that can travel between two zones, *i* and *j*. The utilities of each alternative are defined by, 
+    """)
+    st.latex(r'''
+    V_{j,car}^i = \alpha_{car} + \beta_{car}t_{j,car}^i + \gamma_{car}c_{j,car}^i+\theta\ln(N_{employed}^j) 
+    ''')
+    st.latex(r'''
+    V_{j,pt}^i = \beta_{inv}t_{j,inv}^i + \beta_{wait}t_{j,wait}^i + \gamma_{pt}c_{j,pt}^i+\theta\ln(N_{employed}^j)
+    ''')
+    st.latex(r'''
+    V_{j,slow}^i = \alpha_{slow} + \phi d_{ij} + \theta\ln(N_{employed}^j)
+    ''')
+    st.markdown("""
+    where,      
+    -   $t_{j,car}^i$ = travel time by car from zone *i* to *j*
+    -   $c_{j,car}^i$ = cost of traveling by car from zone *i* to *j* 
+    -   $t_{j,inv}^i$ = in-vehicle travel time by pt from zone *i* to *j*
+    -   $t_{j,wait}^i$ = waiting time for of traveling by pt from zone *i* to *j*
+    -   $c_{j,pt}^i$ = cost of traveling by pt from zone *i* to *j*
+    -   $d_{ij}$ = distance between zone *i* and *j*
+    -   $N_{employed}^j$ = number of employee in zone *j*
+    """)
+
+    st.markdown("""
+    |      	| Variabe               	| Parameter       	|
+    |------	|-----------------------	|-----------------	|
+    | Zone 	| Size parameter        	| $\\theta$        	|
+    | Car  	| ASC                   	| $\\alpha_{car}$  	|
+    |      	| travel time (min)     	| $\\beta_{car}$   	|
+    |      	| cost (SEK)            	| $\gamma_{car}$  	|
+    | PT   	| in-vehicle time (min) 	| $\\beta_{inv}$   	|
+    |      	| waiting time (min)    	| $\\beta_{wait}$  	|
+    |      	| cost (SEK)            	| $\gamma_{pt}$   	|
+    | Slow 	| ASC                   	| $\\alpha_{slow}$ 	|
+    |      	| distance (km)         	| $\phi$           	|
+    """)
 
     # Show by Zone and Mode
     st.markdown("## EXCERCISES")
@@ -33,7 +74,8 @@ def utility_function():
         dest_zone = st.radio("Select Destination Zone", list(ZONE.keys()))
         mode      = st.radio("Select Mode", list(MODE.keys()))
         utility = get_utility(ZONE[orig_zone], ZONE[dest_zone], MODE[mode])
-        st.markdown("### The utility of {} from {} to {} is {}".format(mode, orig_zone, dest_zone, round(utility, 4)))
+        st.markdown("The utility of **{}** from **{}** to **{}** is given by,".format(mode, orig_zone, dest_zone))
+        st.markdown("$V(m, i, j)$ = {}".format(round(utility, 4)))
 
 
 
@@ -65,13 +107,13 @@ def mode_choice_model():
         dest_zone = st.radio("Select Destination Zone", list(ZONE.keys()))
         mode      = st.radio("Select Mode", list(MODE.keys()), key=1)
         probability = get_probability(ZONE[orig_zone], ZONE[dest_zone], MODE[mode])
-        st.markdown("### The probability of someone travelling from {} to {} using a {} is given by,".format(orig_zone, dest_zone, mode))
-        st.markdown("**P(m={}|i={}, j={}) = {}**".format(mode, orig_zone, dest_zone, round(probability, 4)))
+        st.markdown("### The probability of someone travelling from {} to {} using a {} is given by the conditional probability,".format(orig_zone, dest_zone, mode))
+        st.markdown("**P(m={} | i={}, j={}) = {}**".format(mode, orig_zone, dest_zone, round(probability, 4)))
 
 
     if st.checkbox("(iii) Probability of travelling using choosen mode from zone 1 to any destination"):
         mode      = st.radio("Select Mode", list(MODE.keys()), key=2)
-        zone11    = zone12 = get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
+        zone11    = get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
         zone12    = get_probability(ZONE["Zone 1"], ZONE["Zone 2"], MODE[mode])
         st.markdown("### The probability of choosing {} from Zone 1 is given by,".format(mode, round(zone11*0.5 + zone12*0.5, 4)))
         st.write("""
@@ -79,6 +121,7 @@ def mode_choice_model():
         Pr(m|i) = \sum_{j={1,2}} Pr(m|i,j)*P(j)
         $$
         """)
+        st.markdown("**With assumption that P(j)=0.5 for j in [1,2]**")
         st.markdown("**P(m={}|i=Zone1) = {}**".format(mode, round(zone11*0.5 + zone12*0.5, 4)))
 
 
@@ -135,7 +178,15 @@ def mode_choice_model():
 
 def destination_choice_model():
     st.markdown("## 2.3 Destination Choice Model")
-    pass
+
+    st.markdown("## EXERCISES")
+
+    if st.checkbox("(ii) Probability of choosing a specific destination for given mode"):
+        mode = st.radio("Select Mode", list(MODE.keys()), key=1)
+        st.markdown("**P(i, j| m)**")
+
+
+        pass
 
 
 
