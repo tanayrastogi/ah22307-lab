@@ -54,6 +54,9 @@ def utility_function():
     """)
 
     st.markdown("""
+
+    The model parameters are given by, 
+
     |      	| Variabe               	| Parameter       	|
     |------	|-----------------------	|-----------------	|
     | Zone 	| Size parameter        	| $\\theta$        	|
@@ -85,6 +88,10 @@ def utility_function():
 
 
 
+
+
+
+
 def mode_choice_model():
     st.markdown("## 2.2 Mode Choice Model")
 
@@ -97,7 +104,29 @@ def mode_choice_model():
         st.write(pd.DataFrame(probabilities[1], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
         st.markdown("Probability for **SLOW**")
         st.write(pd.DataFrame(probabilities[2], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
-    
+
+    st.markdown("""
+    ## Mode Choice Model
+    The model calculates the probability of each alternative mode of transport given the origin and destination. 
+    Hence, we calculate **$Pr(m|i,j)$**, where $m$ is mode and $i$ and $j$ are the origin and destination zones.
+    """)    
+    st.write("""
+    Assuming the utility of choosing the alternative is given by, 
+
+    $$
+    U_{j,m}^i = V_{j,m}^i + \epsilon_{j,m}^i  
+    $$
+
+    where, $\epsilon_{j,m}^i$ is I.I.D Gumble distributed error term representing uncertinity. 
+    """)
+    st.write("""
+    The probability that the utility for alternative $m$ given $i$ and $j$ is given by, 
+
+    $$
+    Pr(m|i,j) = Pr(U_{j,m}^i > U_{j,m'}^i) = \dfrac{\exp^{V_{j,m}^i}}{ \sum_{m'={1,2,3}} \exp^{V_{j,m'}^i} }
+    $$
+    """)
+
     
     # Show by Zone and Mode
     st.markdown("## EXERCISES")
@@ -107,26 +136,43 @@ def mode_choice_model():
         dest_zone = st.radio("Select Destination Zone", list(ZONE.keys()))
         mode      = st.radio("Select Mode", list(MODE.keys()), key=1)
         probability = get_probability(ZONE[orig_zone], ZONE[dest_zone], MODE[mode])
-        st.markdown("### The probability of someone travelling from {} to {} using a {} is given by the conditional probability,".format(orig_zone, dest_zone, mode))
-        st.markdown("**P(m={} | i={}, j={}) = {}**".format(mode, orig_zone, dest_zone, round(probability, 4)))
+        st.markdown("The probability of travelling from **{}** to **{}** using a **{}** is,".format(orig_zone, dest_zone, mode))
+        st.markdown("$P(m|i,j)$ = **{}**".format(round(probability, 4)))
 
 
     if st.checkbox("(iii) Probability of travelling using choosen mode from zone 1 to any destination"):
-        mode      = st.radio("Select Mode", list(MODE.keys()), key=2)
-        zone11    = get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
-        zone12    = get_probability(ZONE["Zone 1"], ZONE["Zone 2"], MODE[mode])
-        st.markdown("### The probability of choosing {} from Zone 1 is given by,".format(mode, round(zone11*0.5 + zone12*0.5, 4)))
         st.write("""
+        Using the law of large numbers, 
+
         $$
         Pr(m|i) = \sum_{j={1,2}} Pr(m|i,j)*P(j)
         $$
+
+        where, $P(j)$ is 0.5 for each zone and $i = 1$
         """)
-        st.markdown("**With assumption that P(j)=0.5 for j in [1,2]**")
-        st.markdown("**P(m={}|i=Zone1) = {}**".format(mode, round(zone11*0.5 + zone12*0.5, 4)))
+        
+        mode      = st.radio("Select Mode", list(MODE.keys()), key=2)
+        zone11    = get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
+        zone12    = get_probability(ZONE["Zone 1"], ZONE["Zone 2"], MODE[mode])
+        
+        st.markdown("The probability of travelling from **Zone 1** using **{}** is,".format(mode))
+        st.markdown("$P(m|i=1)$ = **{}**".format(round(zone11*0.5 + zone12*0.5, 4)))
 
 
 
     if st.checkbox("(iv) Effect on probabilites choosing u_mode"):
+        st.markdown("""
+        Let us assume that the utility function is given by,
+        $$
+        U_{j,m}^i = V_{j,m}^i + \mu_{mode}*\epsilon_{j,m}^i  
+        $$
+        where, $\mu_{mode}$ is a scaling factor for error term
+        """)
+        st.markdown("""
+        As value for $\mu_{mode}$ increases, uncertinity in the model increases. Hence the probabilties for each mode becomes more and more uncertain. 
+        As value for $\mu_{mode}$ decreases, we are more sure of the deterministic values. Hence the probabilties for each mode becomes more and more certain. 
+        """)
+
         u_mode = st.slider("Select u_mode value", min_value=float(0.1), max_value=float(10), value=float(1), step=float(0.1))
 
         # Plotting

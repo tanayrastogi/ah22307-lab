@@ -65,7 +65,7 @@ def get_probability(origin_zone=None, destination_zone=None, mode=None, u_mode=1
     probalities = ModeProbability(utility[0], utility[1], utility[2])
 
     if(verbose):
-        print("------- Probalities Mode Utility -------")
+        print("------- Probalities Mode Choice -------")
         print("\nProbalities of Car:")
         print( np.around(probalities[0], decimals=3) )
         print("\nProbalities of PT:")

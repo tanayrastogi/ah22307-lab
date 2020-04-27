@@ -109,8 +109,10 @@ def get_utility(origin_zone=None, destination_zone=None, mode=None, u_mode=1, em
         print("\nUtility of Slow:")
         print(utility[2])
 
-    if mode == None:
+    if (mode==None) and (destination_zone==None) and (origin_zone==None):
         return utility
+    elif (destination_zone==None) and (origin_zone==None):
+        return utility[mode]
     else:
         return utility[mode][origin_zone][destination_zone]
 
