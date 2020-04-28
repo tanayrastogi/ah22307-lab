@@ -6,7 +6,9 @@ import plotly.graph_objects as go
 
 # Local Imports
 from utility_function import get_utility
-from mode_probability import get_probability
+import mode_probability as mp
+import destination_probability as dp
+
 
 # Global Constants
 MODE = {"Car":0, "PT":1, "Slow":2}
@@ -97,7 +99,8 @@ def mode_choice_model():
 
     # Show Probability Matrix
     if st.checkbox("Show Probability Matrixes"):
-        probabilities = get_probability()
+        st.markdown("Probability of choosing mode given origin and destination")
+        probabilities = mp.get_probability()
         st.markdown("Probability for **CAR**")
         st.write(pd.DataFrame(probabilities[0], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
         st.markdown("Probability for **PUBLIC TRANSPORT (PT)**")
@@ -135,7 +138,7 @@ def mode_choice_model():
         orig_zone = st.radio("Select Origin Zone", list(ZONE.keys()))
         dest_zone = st.radio("Select Destination Zone", list(ZONE.keys()))
         mode      = st.radio("Select Mode", list(MODE.keys()), key=1)
-        probability = get_probability(ZONE[orig_zone], ZONE[dest_zone], MODE[mode])
+        probability = mp.get_probability(ZONE[orig_zone], ZONE[dest_zone], MODE[mode])
         st.markdown("The probability of travelling from **{}** to **{}** using a **{}** is,".format(orig_zone, dest_zone, mode))
         st.markdown("$P(m|i,j)$ = **{}**".format(round(probability, 4)))
 
@@ -152,8 +155,8 @@ def mode_choice_model():
         """)
         
         mode      = st.radio("Select Mode", list(MODE.keys()), key=2)
-        zone11    = get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
-        zone12    = get_probability(ZONE["Zone 1"], ZONE["Zone 2"], MODE[mode])
+        zone11    = mp.get_probability(ZONE["Zone 1"], ZONE["Zone 1"], MODE[mode])
+        zone12    = mp.get_probability(ZONE["Zone 1"], ZONE["Zone 2"], MODE[mode])
         
         st.markdown("The probability of travelling from **Zone 1** using **{}** is,".format(mode))
         st.markdown("$P(m|i=1)$ = **{}**".format(round(zone11*0.5 + zone12*0.5, 4)))
@@ -176,7 +179,7 @@ def mode_choice_model():
         u_mode = st.slider("Select u_mode value", min_value=float(0.1), max_value=float(10), value=float(1), step=float(0.1))
 
         # Plotting
-        umode_prob = get_probability(u_mode=u_mode)
+        umode_prob = mp.get_probability(u_mode=u_mode)
         index = ["Car", "Pt", "Slow"]
         zone11= [umode_prob[i][0][0] for i in range(3)]
         zone12= [umode_prob[i][0][1] for i in range(3)]
@@ -195,11 +198,15 @@ def mode_choice_model():
         
     
     if st.checkbox("(iv) Effect on probabilites changing number of employees"):
+        st.markdown("""
+        Due to **Equivalent Difference Property**, any change in number of employee does not affect the probablities.
+        """)
+        
         zone1_emp = st.slider("Change for Zone 1 employee", min_value=int(-5000), max_value=int(5000), value=int(0), step=int(1000))
         zone2_emp = st.slider("Change for Zone 2 employee", min_value=int(-5000), max_value=int(5000), value=int(0), step=int(1000))
 
         # Plotting
-        emp_prob = get_probability(emp_change_z1=zone1_emp, emp_change_z2=zone2_emp)
+        emp_prob = mp.get_probability(emp_change_z1=zone1_emp, emp_change_z2=zone2_emp)
         index = ["Car", "Pt", "Slow"]
         zone11= [emp_prob[i][0][0] for i in range(3)]
         zone12= [emp_prob[i][0][1] for i in range(3)]
@@ -225,14 +232,79 @@ def mode_choice_model():
 def destination_choice_model():
     st.markdown("## 2.3 Destination Choice Model")
 
+    # Show Probability Matrix
+    if st.checkbox("Show Probability Matrixes"):
+        st.markdown("Probability of choosing destination given mode and origin")
+        probabilities = dp.get_probability()
+        st.markdown("Probability for **CAR**")
+        st.dataframe(pd.DataFrame(probabilities[0], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+        st.markdown("Probability for **PUBLIC TRANSPORT (PT)**")
+        st.dataframe(pd.DataFrame(probabilities[1], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+        st.markdown("Probability for **SLOW**")
+        st.dataframe(pd.DataFrame(probabilities[2], index=["Zone 1", "Zone 2"], columns=["Zone 1", "Zone 2"]))
+
+
+    st.markdown("""
+    ## Destination Choice Model
+    The model calculates the probability of chossing destination given the origin and mode of transport. 
+    Hence, we calculate **$Pr(j|i,m)$**, where $m$ is mode and $i$ and $j$ are the origin and destination zones.
+    """)  
+    st.write("""
+    Using the deterministic utility $V_{j,m}^i$ we calculate the the probability of choosing $j$ given $i$ and $m$.
+    The utility is given by,  
+
+    $$
+    U_{j,m}^i = V_{j,m}^i + \epsilon_{j,m}^i  
+    $$
+    """)
+    st.write("""
+    The probability of the choosen destination $j$ given $i$ and $m$ is given by, 
+
+    $$
+    Pr(j|i,m) = Pr(U_{j,m}^i > U_{j',m}^i) = \dfrac{\exp^{V_{j,m}^i}}{ \sum_{j'={1,2}} \exp^{V_{j',m}^i} }
+    $$
+    """)
+
+
+    # Show by Zone and Mode
     st.markdown("## EXERCISES")
+    
+    if st.checkbox("(iii [a]) Probabilites of destination given mode and origin zone"):
+        orig_zone = st.radio("Select Origin Zone", list(ZONE.keys()))
+        dest_zone = st.radio("Select Destination Zone", list(ZONE.keys()))
+        mode      = st.radio("Select Mode", list(MODE.keys()), key=1)
 
-    if st.checkbox("(ii) Probability of choosing a specific destination for given mode"):
-        mode = st.radio("Select Mode", list(MODE.keys()), key=1)
-        st.markdown("**P(i, j| m)**")
+        probability = dp.get_probability(origin_zone=ZONE[orig_zone], destination_zone=ZONE[dest_zone], mode=MODE[mode])
+        st.markdown("The probability of travelling to **{}** from **{}** using a **{}** is,".format(dest_zone, orig_zone, mode))
+        st.markdown("$P(j|i,m)$ = **{}**".format(round(probability, 4)))
 
 
-        pass
+
+    if st.checkbox("(iii [b/c]) Effect on probabilites changing number of employees"):
+        zone1_emp = st.slider("Change for Zone 1 employee", min_value=int(-5000), max_value=int(10000), value=int(0), step=int(1000))
+        zone2_emp = st.slider("Change for Zone 2 employee", min_value=int(-5000), max_value=int(15000), value=int(0), step=int(1000))
+
+        # Plotting
+        emp_prob = dp.get_probability(emp_change_z1=zone1_emp, emp_change_z2=zone2_emp)
+        index = ["Car", "Pt", "Slow"]
+        zone11= [emp_prob[i][0][0] for i in range(3)]
+        zone12= [emp_prob[i][0][1] for i in range(3)]
+        zone21= [emp_prob[i][1][0] for i in range(3)]
+        zone22= [emp_prob[i][1][1] for i in range(3)]
+        fig = go.Figure(data=[
+            go.Bar(name="Zone 11", x=index, y=zone11),
+            go.Bar(name="Zone 12", x=index, y=zone12),
+            go.Bar(name="Zone 21", x=index, y=zone21),
+            go.Bar(name="Zone 22", x=index, y=zone22)])
+        fig.update_layout(barmode='group',
+                          title="Number of Employees - Zone 1: {} Zone 2: {}".format(10_000+zone1_emp, 15_000+zone2_emp),
+                          title_font_size=20)
+        fig.update_yaxes(range=[0, 1], title_text='Probability')
+        st.plotly_chart(fig)
+
+
+
+
 
 
 
@@ -240,13 +312,15 @@ def about():
     st.markdown("# ABOUT PAGE")
 
 def main():
-    st.title("AH2307 Lab 1a+b")
+    st.title("Lab 1 - Multinomial and Nested Logit")
     sections = {2.1: "2.1 Utility functions",
                 2.2: "2.2 Mode Choice Model",
                 2.3: "2.3 Destination Choice Model",
                 0.0: "Information"}
-    selected_section = st.sidebar.selectbox("Section", list(sections.values()))
 
+    # Side bar
+    st.sidebar.title("AH2307 Lab-1")
+    selected_section = st.sidebar.selectbox("Section", list(sections.values()))
 
     if selected_section == list(sections.values())[0]:
         utility_function() 
@@ -256,7 +330,6 @@ def main():
         destination_choice_model() 
     else:
         about()
-
 
 
 if __name__ == "__main__":

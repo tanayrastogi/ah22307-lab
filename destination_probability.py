@@ -60,8 +60,8 @@ def get_probability(origin_zone=None, destination_zone=None, mode=None, u_mode=1
 
     # Utilitiy values for each mode of travelling from origin to destination zone
     probalities = list()
-    for mode in range(3):
-        utility = get_utility(mode=mode)
+    for itr in range(3):
+        utility = get_utility(mode=itr, u_mode=u_mode, emp_change_z1=emp_change_z1, emp_change_z2=emp_change_z2)
         # Destination choice probability
         probalities.append(DestinationProbability(utility))
 
@@ -76,17 +76,19 @@ def get_probability(origin_zone=None, destination_zone=None, mode=None, u_mode=1
     
     #### TEST to make sure that the sum of probabilities is 1
     #### If not true will give assertion error
-    for mode in range(3):
-        sum_of_prob = np.sum(probalities[mode])
-        col_sum_of_prob = np.sum(probalities[mode], axis=1)
+    for itr in range(3):
+        sum_of_prob = round(np.sum(probalities[itr]), 5)
+        col_sum_of_prob = np.around(np.sum(probalities[itr], axis=1), 5)
         assert (2.0 == sum_of_prob).all()
         assert (np.ones((1,2)) == col_sum_of_prob).all()
 
 
     if (mode==None) and (destination_zone==None) and (origin_zone==None):
         return probalities
-    elif (destination_zone==None) and (origin_zone==None):
+    elif (mode!=None) and (origin_zone==None) and (destination_zone==None):
         return probalities[mode]
+    elif (mode!=None) and (origin_zone!=None) and (destination_zone==None):
+        return probalities[mode][origin_zone]
     else:
         return probalities[mode][origin_zone][destination_zone]
 
@@ -102,8 +104,24 @@ def answer(ques=-1):
         ## Question 1
         # Probability for Destination Choice Model
         # Answer
-        print("\nProbability of choosing destination for all modeL")
-        get_probability(verbose=True)
+        print("\nProbability of choosing destination for all mode")
+        get_probability(verbose=False)
+    
+    if ques == 2:
+        ## Question 1
+        # Probability for Destination Choice Model
+        # Answer
+        mode = 1
+        origin = 1
+        print("\nProbability of choosing destination for mode {} and origin {}".format(MODE[mode], ZONE[origin]))
+        print(get_probability(origin_zone=origin, mode=mode, verbose=True))
+    
+    elif ques == 3:
+        ## Question 5
+        # Probability for Mode Choice Model
+        # Answer
+        print("\nProbability of travelling with ALL")
+        get_probability(emp_change_z1=-5000, emp_change_z2=4000, verbose=True)
 
 
 
@@ -112,6 +130,6 @@ def answer(ques=-1):
 
 
 if __name__ == "__main__":
-    answer(1)
+    answer(3)
 
     
