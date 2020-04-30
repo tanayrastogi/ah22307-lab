@@ -28,6 +28,39 @@ def gumbel_distrubution(mu, beta, count, plot=False):
     else:
         return s
 
+def model_sampling(num_samples=10_00_000, mu=0, beta=1, origin_zone=0, destination_zone=1):
+
+    # Output
+    max_U, max_indx = list(), list()
+
+    # Deterministic utility
+    V = get_utility()
+
+    # Run the loop for given number of samples
+    for itr in range(num_samples):
+        # Ita values from gumbel distribution
+        ita = gumbel_distrubution(mu, beta, count=3)
+        
+        # Calculating utilities
+        U = [V[mode][origin_zone][destination_zone] for mode in range(3)] + ita
+
+        # Getting the max utility value
+        max_u = np.amax(U)
+        # Getting max utility index
+        index = np.where(U == max_u)
+
+        # Adding both values to list
+        max_U.append(max_u)
+        max_indx.append(index[0][0])
+    
+    return (max_U, max_indx)
+
+
+
+
+
+
+
 if __name__ == "__main__":
 
     MODE = {0:"Car", 1:"PT", 2:"Slow"}
@@ -39,15 +72,51 @@ if __name__ == "__main__":
     mu = 0
     beta = 1
 
-    print("\nValue of Ita: ")
-    ita = gumbel_distrubution(mu, beta, count=1)
-    print(ita)
+    number_of_samples = 1_00_000
 
-    utility = get_utility()
-    utility = [utility[mode][orig_zone][dest_zone] for mode in range(3)] + ita
-   
-    print("\nMaximum of the modes")
-    max_u = np.amax(utility)
-    print(max_u)
-    index = np.where(utility == max_u)
-    print(index[0][0])
+    # V = get_utility()
+    # print("Actual Utility value:")
+    # print([V[mode][orig_zone][dest_zone] for mode in range(3)])
+
+    # indx_list = list()
+    # for itr in range(number_of_samples):
+    #     # print("\n-------- ITR {} --------".format(itr))
+    #     ita = gumbel_distrubution(mu, beta, count=3)
+    #     # print("ITA Value: ", ita)
+        
+    #     # print("Utility for each mode: ")       
+    #     utility = [V[mode][orig_zone][dest_zone] for mode in range(3)] + ita
+    #     # print(utility)
+
+    #     max_u = np.amax(utility)
+    #     index = np.where(utility == max_u)
+    #     # print("The maximum value is {} at index {}".format(max_u, index[0][0]))
+    #     indx_list.append(index[0][0])
+    
+    # print("\nCount")
+    # print(round(indx_list.count(0)/number_of_samples, 4))
+    # print(round(indx_list.count(1)/number_of_samples, 4))
+    # print(round(indx_list.count(2)/number_of_samples, 4))
+
+
+    V = get_utility()
+    V = np.array([V[mode][orig_zone][dest_zone] for mode in range(3)]).reshape(3,1)
+    # print("\nDeterministic Utility")
+    # print(V)
+
+    s = np.random.gumbel(0, 1, (3, 10_00_000))
+    # print("\nRandom value")
+    # print(s)
+
+    # print("\nUtility")
+    U = np.add(V, s)
+    # print(U)
+
+    # print("\nMax Values")
+    max_U = np.amax(U, axis=0)
+    # print(max_U)
+    # print("Index")
+    max_indx = np.argmax(U, axis=0) 
+    # print(max_indx)
+    unique, count = np.unique(max_indx, return_counts=True)
+    print(dict(zip(unique, count)))
