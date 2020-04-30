@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd 
 import numpy as np 
+import plotly.graph_objects as go
 
 # Local import
 import simulating_choices as sc
@@ -65,8 +66,8 @@ def presentation():
         beta = st.slider("Select Variance value",
                         min_value=float(0), max_value=float(10), value=float(1), step=float(0.1))
         if st.checkbox("Plot distribution?"):
-            val, plt = sc.gumbel_distrubution(mu=mu, beta=beta, count=10_00_000, plot=True)
-            st.pyplot(plt)
+            val, plot_gumbel = sc.gumbel_distrubution(mu=mu, beta=beta, count=10_00_000, plot=True)
+            st.pyplot(plot_gumbel)
         
         # Origin and Destination
         orig_zone = st.radio("Select Origin Zone", list(ZONE.keys()))
@@ -74,18 +75,25 @@ def presentation():
 
         # Get values
         with st.spinner("Sampling values"):
-            max_U, max_U_index = sc.model_sampling(num_samples=sample_count,
-                                                   mu=mu,
-                                                   beta=beta,
-                                                   origin_zone=ZONE[orig_zone],
-                                                   destination_zone=ZONE[dest_zone])
+            max_U, max_U_index, count_dict = sc.model_sampling(num_samples=sample_count,
+                                                    mu=mu,
+                                                    beta=beta,
+                                                    origin_zone=ZONE[orig_zone],
+                                                    destination_zone=ZONE[dest_zone])
             st.success("Done simulating for {} samples!".format(sample_count))
         
-        count = np.array([max_U_index.count(mode) for mode in MODE.values()])
-        proba = np.divide(count, sample_count)
 
-        print("Count: ", count)
-        print("Proba: ", proba)
-        for mode in MODE.keys():
-            st.markdown("Number of time {} is selected: {}".format(mode, max_U_index.count(MODE[mode])))
+        st.markdown("### Number of times the mode is selected from {} samples".format(sample_count))
+        valu = np.array(list(count_dict.values())).reshape(3,1)
+        prob = np.divide(valu, sample_count).reshape(3,1)
+        data = np.hstack((valu, prob)).reshape(3,2)
+        df = pd.DataFrame(data, index=list(MODE.keys()), columns=["COUNT", "PROBABILITY"])
+        st.table(df)
 
+        # Plot
+        fig = go.Figure(data=[go.Histogram(x=max_U,
+                                            nbinsx=30)])
+        fig.update_layout(barmode='group',
+                        title="Distrubution of max_U for {} samples".format(sample_count),
+                        title_font_size=20)
+        st.plotly_chart(fig)

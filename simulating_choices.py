@@ -14,7 +14,7 @@ from utility_function import get_utility
 def gumbel_distrubution(mu, beta, count, plot=False):
     s = np.random.gumbel(mu, beta, count)
 
-    if(plot):
+    if(plot and isinstance(count, int)):
         _, bins, _ = plt.hist(s, 30, density=True)    
         plt.plot(bins, (1/beta)*np.exp(-(bins - mu)/beta)
                 * np.exp( -np.exp( -(bins - mu) /beta) ),
@@ -28,34 +28,34 @@ def gumbel_distrubution(mu, beta, count, plot=False):
     else:
         return s
 
-def model_sampling(num_samples=10_00_000, mu=0, beta=1, origin_zone=0, destination_zone=1):
+def model_sampling(num_samples, mu, beta, origin_zone=0, destination_zone=1):
 
     # Output
     max_U, max_indx = list(), list()
 
     # Deterministic utility
     V = get_utility()
+    V = np.array([V[mode][origin_zone][destination_zone] for mode in range(3)]).reshape(3,1)
 
-    # Run the loop for given number of samples
-    for itr in range(num_samples):
-        # Ita values from gumbel distribution
-        ita = gumbel_distrubution(mu, beta, count=3)
-        
-        # Calculating utilities
-        U = [V[mode][origin_zone][destination_zone] for mode in range(3)] + ita
+    # Generate 3xsample_count array for random varaible
+    ita = gumbel_distrubution(mu, beta, count=(3, num_samples))
 
-        # Getting the max utility value
-        max_u = np.amax(U)
-        # Getting max utility index
-        index = np.where(U == max_u)
+    # Utility value
+    U = np.add(V, ita)
 
-        # Adding both values to list
-        max_U.append(max_u)
-        max_indx.append(index[0][0])
-    
-    return (max_U, max_indx)
+    # Max U values
+    max_U = np.amax(U, axis=0)
+    max_indx = np.argmax(U, axis=0)
+    unique, count = np.unique(max_indx, return_counts=True)
+    count_dict = dict(zip(unique, count))
 
+    ## TEST
+    i = 0
+    for v in count_dict.values():
+        i += v
+    assert i == num_samples
 
+    return (max_U, max_indx, count_dict)
 
 
 
@@ -119,4 +119,9 @@ if __name__ == "__main__":
     max_indx = np.argmax(U, axis=0) 
     # print(max_indx)
     unique, count = np.unique(max_indx, return_counts=True)
-    print(dict(zip(unique, count)))
+    dict_coutnt = dict(zip(unique, count))
+    print(dict_coutnt)
+    i = 0
+    for v in dict_coutnt.values():
+        i += v
+    print(i)
